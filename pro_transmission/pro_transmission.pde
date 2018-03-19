@@ -2,6 +2,7 @@
 import processing.serial.*;
 
 Serial myPort;
+String port;
 String transmission;
 
 void setup() {
@@ -9,8 +10,16 @@ void setup() {
   noStroke();
   rectMode(CENTER);
   
-  //String portname = Serial.list()[4];
-  myPort = new Serial(this, "COM5", 9600);
+  port = findPort();
+  if (port != null)  
+  {
+    new Serial(this, port, 9600).bufferUntil(ENTER);
+  }
+  else
+  {
+    println("No available ports");
+    exit();
+  }
 }
   int accLeft=0;
   int accRight=0;
@@ -24,6 +33,7 @@ void setup() {
   int controlRY = controlLen/2 + 60;
   int controlLX = winWid/2 - 200;
   int controlLY = controlLen/2 + 60;
+  boolean has_changed = false;
   boolean left_on = false;
   boolean right_on = false;
   
@@ -44,8 +54,32 @@ void draw() {
   fill(0, 102, 153);
   text(accLeft, winWid/2 - 190, 40);
   text(accRight, winWid/2 + 190, 40);
-  myPort.write(transmission);
-  println("Port: " + "COM5" + ", Serial: " + 9600 + ", sending: " + accLeft + ", " + accRight);  
+  
+  writeToPort();
+}
+
+void writeToPort()
+{
+  if(has_changed)
+  {
+    transmission = "L" + accLeft + "R" + accRight;
+    myPort.write(transmission);
+    println("Port: " + port + ", Serial: " + 9600 + ", sending: " + accLeft + ", " + accRight);
+  }
+}
+
+static final String findPort()
+{
+  String[] ports = Serial.list();
+  for (String p : ports)  
+  {
+      if(p == "COM1" || p == "COM2" || p == "COM3" || p == "COM4" || p == "COM5")
+      {
+        println("Found Port: " + p);
+        return p; 
+      }
+  }
+  return null;
 }
 
 void mousePressed()
@@ -74,6 +108,7 @@ void mouseDragged()
       {
          controlRY = mouseY;
          accRight = (controlRY - 90)/5;
+         has_changed = true;
       }
   }
   if(left_on == true)
@@ -82,6 +117,7 @@ void mouseDragged()
       {
          controlLY = mouseY;
          accLeft = (controlLY - 90)/5;
+         has_changed = true;
       }
   }
 }
@@ -90,4 +126,5 @@ void mouseReleased()
 {
   left_on = false;
   right_on = false;
+  has_changed = false;
 }

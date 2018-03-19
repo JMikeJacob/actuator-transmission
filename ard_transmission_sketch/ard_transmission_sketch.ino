@@ -1,26 +1,42 @@
-char acc1 = 0;
-char acc2 = 0;
-String transmission;
+char serialChar = NULL;
+String accString = NULL;
+int acc1Int = 0;
+int acc2Int = 0;
 
 int ledPin = LED_BUILTIN;
 void setup() {
-  // put your setup code here, to run once:
   pinMode(ledPin, OUTPUT);
   Serial.begin(9600);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
   if(Serial.available())
   {
-    acc1 = Serial.read();
+    //serial parser
+    serialChar = Serial.read();
+    if(isDigit(serialChar))
+    {
+      accString += serialChar; 
+    }
+    
+    if(serialChar == 'R')
+    {
+      acc1Int = accString.toInt();
+      accString = ""; 
+    }
+    else if(serialChar == '/n')
+    {
+      acc2Int = accString.toInt();
+      accString = ""; 
+    }
   }
-  if(acc1 >= char(75) )
+  //LED test
+  if(acc1Int >= 75 && acc2Int >= 75)
   {
-    digitalWrite(ledPin, HIGH);
+    digitalWrite(ledPin, HIGH); 
   }
   else
   {
-    digitalWrite(ledPin, LOW);
+    digitalWrite(ledPin, LOW); 
   }
 }
